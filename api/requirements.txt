@@ -1,3 +1,6 @@
 flask
 python-dotenv
 psycopg2-binary
+pyjwt
+bcrypt
+sentence_transformers
