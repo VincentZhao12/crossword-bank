@@ -15,11 +15,12 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 SIGNUP_USER = "INSERT INTO users (id, email, username, password, salt) VALUES (DEFAULT, %s, %s, %s, %s) RETURNING id"
 SELECT_LOGIN = "SELECT id, password, salt FROM users WHERE email = %s"
 
-CREATE_BANK = "INSERT INTO banks (id, user_id, title) VALUES (DEFAULT, %s, %s, %s) RETURNING id"
+CREATE_BANK = "INSERT INTO banks (id, user_id, title) VALUES (DEFAULT, %s, %s) RETURNING id"
 SELECT_EDITORS = "SELECT user_id FROM banks WHERE id = %s"
 CREATE_CLUE = "INSERT INTO clues (id, clue, answer, user_id, bank_id) VALUES (DEFAULT, %s, %s, %s, %s)"
 
-SELECT_BANKS = "SELECT * FROM banks;"
+SELECT_BANKS = "SELECT * FROM banks"
+SELECT_BANKS_USER = "SELECT * FROM banks WHERE user_id = %s"
 SELECT_CLUES = "SELECT * FROM clues WHERE 1 = 1"
 SELECT_CLUES_USER = "SELECT * FROM clues WHERE user_id = %s"
 SELECT_CLUES_BANK = "SELECT * FROM clues WHERE bank_id = %s"
@@ -40,9 +41,9 @@ app.config["AUTH_SECRET_KEY"] = os.getenv("JWT_SECRET")
 
 @app.route("/sign-up", methods=["POST"])
 def signup():
-    email = request.json["email"]
-    name = request.json["name"]
-    password = request.json["password"]
+    email = request.json.get("email")
+    name = request.json.get("name")
+    password = request.json.get("password")
 
     if not email:
         return jsonify({"message": "email is required"}), 400
@@ -75,8 +76,8 @@ def signup():
 
 @app.route("/log-in", methods=["POST"])
 def login():
-    email = request.json["email"]
-    password = request.json["password"]
+    email = request.json.get("email")
+    password = request.json.get("password")
     
     if not email:
         return jsonify({"message": "email is required"}), 400
@@ -112,8 +113,8 @@ def check_auth(token):
 
 @app.route("/create-bank", methods=["POST"])
 def create_bank():
-    token = request.json["token"]
-    title = request.json["title"]
+    token = request.json.get("token")
+    title = request.json.get("title")
 
     user_id = check_auth(token)
     if user_id <= 0:
@@ -125,17 +126,18 @@ def create_bank():
     try:
         cursor.execute(CREATE_BANK, (user_id, title))
         bank_id = cursor.fetchone()[0]
-    except:
+    except Exception as e:
+        print("error", e)
         return jsonify({"message": "error occurred creating bank"}), 500
     return jsonify({"bank_id": bank_id, "message": "bank created"}), 200
 
 @app.route("/add-clue", methods=["POST"])
 def add_clue():
-    token = request.json["token"]
-    bank_id = request.json["bank_id"]
-    clue = request.json["clue"]
-    answer = request.json["answer"]
-    # date = request.json["date"]
+    token = request.json.get("token")
+    bank_id = request.json.get("bank_id")
+    clue = request.json.get("clue")
+    answer = request.json.get("answer")
+    # date = request.json.get("date")
     
     user_id = check_auth(token)
     
@@ -164,17 +166,23 @@ def add_clue():
     
     try:
         cursor.execute(CREATE_CLUE, (clue, answer, user_id, bank_id))
-    except:
-        return jsonify({"message": "error occurred creating bank"}), 500
+    except Exception as e:
+        print("error", e)
+        return jsonify({"message": "error occurred creating clue"}), 500
     
     return jsonify({"message": "success"}), 200
     
+@app.route("/get-banks", methods=["GET"])
+def get_banks():
+    user_id = request.json.get("user_id")
+    
+
 @app.route("/get-clues", methods=["GET"])
 def get_clues():
-    user_id = request.json["user_id"]
-    bank_id = request.json["bank_id"]
-    length = request.json["length"]
-    search_term = request.json["search_term"]
+    user_id = request.json.get("user_id")
+    bank_id = request.json.get("bank_id")
+    length = request.json.get("length")
+    search_term = request.json.get("search_term")
     
     if user_id and bank_id:
         return jsonify({"message": "only filter by one at once"}), 400
@@ -189,12 +197,13 @@ def get_clues():
         
     if length:
         args.append(length)
-        query += "AND LEN(answer) = %s"
+        query += " AND LENGTH(answer) = %s"
     
     try:
         cursor.execute(query, args)
         res = cursor.fetchall()
-    except:
+    except Exception  as e:
+        print(e)
         return jsonify({"message": "error occurred fetching clues"}), 500
     
     if not res:
@@ -211,15 +220,15 @@ def get_clues():
     
     clues = [row[1] for row in res]
     
-    clue_embeddings = model.encode(clues, convert_to_tensor=True)
-    search_embedding = model.encode([search_term], convert_to_tensor=True)
+    clue_embeddings = model.encode(clues)
+    search_embedding = model.encode([search_term])
     
     semantic_scores = cosine_similarity(search_embedding, clue_embeddings)[0]
-    matching_scores = [difflib.SequenceMatcher(None, search_term, clue) for clue in clues]
+    matching_scores = [difflib.SequenceMatcher(None, search_term, clue).ratio() for clue in clues]
     
     scores = [semantic_scores[i] + matching_scores[i] for i in range(len(clues))]
     
-    res = sorted(zip(scores, data), key=lambda x: x[1], reverse=True)
-    return jsonify({"data": [row[1] for row in res if row[0] > 0.5]}), 200
+    res = sorted(zip(scores, data), key=lambda x: x[0], reverse=True)
+    return jsonify({"data": [row[1] for row in res if row[0] > 0.1]}), 200
     
     
