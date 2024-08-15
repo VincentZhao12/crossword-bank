@@ -7,6 +7,7 @@ import bcrypt
 import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 import difflib
+from flask_cors import CORS
 
 from sentence_transformers import SentenceTransformer
 
@@ -37,6 +38,10 @@ connection.autocommit = True
 cursor = connection.cursor()
 
 app = Flask(__name__)
+
+cors = CORS(app)
+
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["AUTH_SECRET_KEY"] = os.getenv("JWT_SECRET")
 
 @app.route("/sign-up", methods=["POST"])
@@ -69,7 +74,7 @@ def signup():
         print("token: ", token)
     except Exception as e:
         print("An exception occurred: ", e)
-        return jsonify({"message": str(e)}), 400
+        return jsonify({"message": "email already exists"}), 400
 
         
     return jsonify({'token': token}), 200

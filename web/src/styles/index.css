@@ -4,19 +4,17 @@
 }
 
 @font-face {
-    /* font-family: 'Lato';
-    src: url(../fonts/LibreLato-VariableFont_wght.ttf); */
+    font-family: 'Jakarta';
+    src: url(../fonts/Plus_Jakarta_Sans/PlusJakartaSans-VariableFont_wght.ttf);
 }
 
 body {
-    --connections-main: #b3a7fe;
-    --connections-light: rgb(184, 175, 246);
-
-    --wordle-main: #58a351;
-    --wordle-light: rgb(156, 196, 152);
+    --primary-main: #d81e5b;
+    --primary-light: #de376f;
 
     margin: 0;
-    font-family: 'Lato';
+    font-family: 'Jakarta';
+    /* background-color: #f7f2e4; */
     /* __inter_20b187, __inter_Fallback_20b187, ui-sans-serif,
         system-ui, -apple-system, 'system-ui', 'Segoe UI', Roboto,
         'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
@@ -44,10 +42,10 @@ h6 {
     margin: 0;
 }
 
-a {
+/* a {
     color: inherit;
     text-decoration: none;
-}
+} */
 
 button {
     padding: 1rem 2rem;
@@ -57,7 +55,7 @@ button {
     color: #f3f3f3;
     cursor: pointer;
     font-size: 0.9rem;
-    font-family: 'Lato';
+    font-family: 'Jakarta';
     font-weight: 500;
 }
 
@@ -67,6 +65,21 @@ button:hover {
 
 textarea {
     resize: none;
-    font-family: 'Lato';
+    font-family: 'Jakarta';
     font-size: 1rem;
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'] {
+    width: calc(100% - 0.8em);
+    padding: 0.3em 0.4em;
+    font-family: 'Jakarta';
+    font-size: 1em;
+    /* min-height: 40px; */
+    border-image: none;
+    border-color: #333;
+    border-width: 1px;
+    border-radius: 0.4em;
 }

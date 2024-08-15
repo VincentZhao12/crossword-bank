@@ -8,22 +8,22 @@ const Navbar: FC<NavbarProps> = () => {
     return (
         <div className="nav">
             <div className="subnav">
-                <Link to="/">
+                <Link className="link" to="/">
                     <h1>Jakarta</h1>
                 </Link>
-                <Link to="/clues">
+                <Link className="link" to="/clues">
                     <h3>All Clues</h3>
                 </Link>
-                <Link to="/my-banks">
+                <Link className="link" to="/my-banks">
                     <h3>My Banks</h3>
                 </Link>
             </div>
             <div className="subnav">
-                <Link to="/clues">
-                    <h3>Login</h3>
+                <Link className="link" to="/log-in">
+                    <h3>Log In</h3>
                 </Link>
-                <Link to="/my-banks">
-                    <h3>Signup</h3>
+                <Link className="link" to="/sign-up">
+                    <h3>Sign Up</h3>
                 </Link>
             </div>
         </div>

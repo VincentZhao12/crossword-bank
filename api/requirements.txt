@@ -5,3 +5,4 @@ pyjwt
 bcrypt
 sentence_transformers
 scikit-learn
+flask_cors
