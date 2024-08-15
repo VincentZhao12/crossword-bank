@@ -11,7 +11,7 @@ CREATE TABLE "banks" (
   "id" SERIAL PRIMARY KEY,
   "user_id" integer NOT NULL,
   "title" text NOT NULL,
-  "views" integer default 0
+  -- "views" integer default 0
 );
 
 CREATE TABLE "clues" (
@@ -21,7 +21,7 @@ CREATE TABLE "clues" (
   "user_id" integer NOT NULL,
   -- "date" timestamp default NOW()
   "bank_id" integer NOT NULL,
-  "views" integer default 0
+  -- "views" integer default 0
 );
 
 

@@ -5,11 +5,11 @@ import os
 import jwt
 import bcrypt
 import datetime
-
+from sklearn.metrics.pairwise import cosine_similarity
+import difflib
 
 from sentence_transformers import SentenceTransformer
 
-# 1. Load a pretrained Sentence Transformer model
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 SIGNUP_USER = "INSERT INTO users (id, email, username, password, salt) VALUES (DEFAULT, %s, %s, %s, %s) RETURNING id"
@@ -19,10 +19,10 @@ CREATE_BANK = "INSERT INTO banks (id, user_id, title) VALUES (DEFAULT, %s, %s, %
 SELECT_EDITORS = "SELECT user_id FROM banks WHERE id = %s"
 CREATE_CLUE = "INSERT INTO clues (id, clue, answer, user_id, bank_id) VALUES (DEFAULT, %s, %s, %s, %s)"
 
-SELECT_BANKS = "SELECT * FROM banks"
-SELECT_CLUES = "SELECT * FROM clues"
-SELECT_CLUES_USER = "SELECT * FROM clues where user_id = %s"
-SELECT_CLUES_BANK = "SELECT * FROM clues where bank_id = %s"
+SELECT_BANKS = "SELECT * FROM banks;"
+SELECT_CLUES = "SELECT * FROM clues WHERE 1 = 1"
+SELECT_CLUES_USER = "SELECT * FROM clues WHERE user_id = %s"
+SELECT_CLUES_BANK = "SELECT * FROM clues WHERE bank_id = %s"
 
 load_dotenv()
 
@@ -173,4 +173,53 @@ def add_clue():
 def get_clues():
     user_id = request.json["user_id"]
     bank_id = request.json["bank_id"]
+    length = request.json["length"]
     search_term = request.json["search_term"]
+    
+    if user_id and bank_id:
+        return jsonify({"message": "only filter by one at once"}), 400
+    query = SELECT_CLUES
+    args = []
+    if bank_id:
+        query = SELECT_CLUES_BANK
+        args = [bank_id]
+    elif user_id:
+        query = SELECT_CLUES_USER
+        args = [user_id]
+        
+    if length:
+        args.append(length)
+        query += "AND LEN(answer) = %s"
+    
+    try:
+        cursor.execute(query, args)
+        res = cursor.fetchall()
+    except:
+        return jsonify({"message": "error occurred fetching clues"}), 500
+    
+    if not res:
+        return jsonify({"message": "no clues found matching"}), 400
+    
+    data = [{
+        "id": row[0],
+        "clue": row[1],
+        "answer": row[2],
+    } for row in res]
+    
+    if not search_term:
+        return jsonify({"data": data}), 200
+    
+    clues = [row[1] for row in res]
+    
+    clue_embeddings = model.encode(clues, convert_to_tensor=True)
+    search_embedding = model.encode([search_term], convert_to_tensor=True)
+    
+    semantic_scores = cosine_similarity(search_embedding, clue_embeddings)[0]
+    matching_scores = [difflib.SequenceMatcher(None, search_term, clue) for clue in clues]
+    
+    scores = [semantic_scores[i] + matching_scores[i] for i in range(len(clues))]
+    
+    res = sorted(zip(scores, data), key=lambda x: x[1], reverse=True)
+    return jsonify({"data": [row[1] for row in res if row[0] > 0.5]}), 200
+    
+    
