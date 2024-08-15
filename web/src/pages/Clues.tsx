@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import Answer from '../components/Answer';
 import '../styles/Clues.css';
 import '../styles/Signup.css';

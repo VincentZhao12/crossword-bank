@@ -9,10 +9,10 @@ const Answer: FC<AnswerProps> = ({ word }) => {
     const [flipped, setFlipped] = useState<boolean[]>([]);
 
     useEffect(() => {
-        if (word.length == flipped.length) return;
+        if (word.length === flipped.length) return;
 
         setFlipped(new Array(word.length).fill(false));
-    }, [word]);
+    }, [word, flipped.length]);
 
     return (
         <div className="answer-container">

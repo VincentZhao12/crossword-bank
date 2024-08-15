@@ -1,10 +1,12 @@
 import React, { FC } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {}
 
 const Navbar: FC<NavbarProps> = () => {
+    const { loggedIn, logout } = useAuth();
     return (
         <div className="nav">
             <div className="subnav">
@@ -19,12 +21,20 @@ const Navbar: FC<NavbarProps> = () => {
                 </Link>
             </div>
             <div className="subnav">
-                <Link className="link" to="/log-in">
-                    <h3>Log In</h3>
-                </Link>
-                <Link className="link" to="/sign-up">
-                    <h3>Sign Up</h3>
-                </Link>
+                {!loggedIn ? (
+                    <>
+                        <Link className="link" to="/log-in">
+                            <h3>Log In</h3>
+                        </Link>
+                        <Link className="link" to="/sign-up">
+                            <h3>Sign Up</h3>
+                        </Link>{' '}
+                    </>
+                ) : (
+                    <span onClick={logout} className="clickable">
+                        <h3>Log Out</h3>
+                    </span>
+                )}
             </div>
         </div>
     );

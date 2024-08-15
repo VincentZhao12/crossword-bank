@@ -1,6 +1,7 @@
-import React, { FC, FormEvent, useState } from 'react';
+import React, { FC, FormEvent, useEffect, useState } from 'react';
 import '../styles/Signup.css';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SignupProps {}
 
@@ -10,6 +11,12 @@ const Signup: FC<SignupProps> = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
+
+    const { loggedIn, setLoggedIn } = useAuth();
+
+    useEffect(() => {
+        if (loggedIn) navigate('/');
+    }, [loggedIn, navigate]);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -40,6 +47,7 @@ const Signup: FC<SignupProps> = () => {
                 return;
             }
 
+            setLoggedIn(true);
             localStorage.setItem('token', json.token);
         } catch (e: any) {
             console.warn(e);
