@@ -1,0 +1,26 @@
+.clue {
+    display: flex;
+    justify-content: space-between;
+    width: 60%;
+}
+
+.clue-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25em;
+    width: 100%;
+}
+
+.clues-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+}
+
+.normal-width {
+    width: 60%;
+}

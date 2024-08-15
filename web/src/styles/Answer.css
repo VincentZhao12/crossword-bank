@@ -1,0 +1,35 @@
+.answer-container {
+    display: flex;
+    flex-direction: row;
+    border-color: black;
+    border-style: solid;
+    border-left-width: 1;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    height: calc(1.5em + 3px);
+    align-items: center;
+}
+
+.answer-box {
+    width: 1.5em;
+    height: 1.5em;
+    border-width: 1;
+    border-color: black;
+    border-style: solid;
+    border-left-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.answer-box:hover {
+    width: 1.75em;
+    height: 1.75em;
+    border-width: 1;
+    border-color: black;
+    border-style: solid;
+    border-left-width: 1;
+    cursor: pointer;
+    background-color: var(--primary-light);
+}

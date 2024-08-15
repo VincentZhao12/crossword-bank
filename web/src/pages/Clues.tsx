@@ -1,4 +1,7 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
+import Answer from '../components/Answer';
+import '../styles/Clues.css';
+import '../styles/Signup.css';
 
 interface CluesProps {}
 
@@ -10,11 +13,9 @@ interface Clue {
 
 const Clues: FC<CluesProps> = () => {
     const [data, setData] = useState<Clue[]>([]);
-    const [count, setCount] = useState<number>(0);
     const [searchTerm, setSearchTerm] = useState<string>('');
 
     useMemo(async () => {
-        setCount(count + 1);
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const raw = JSON.stringify({
@@ -40,22 +41,25 @@ const Clues: FC<CluesProps> = () => {
     }, [searchTerm]);
 
     return (
-        <>
-            {count}
-            <label htmlFor="search">input</label>
-            <input
-                type="text"
-                id="search"
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <ul>
+        <div className="clues-container">
+            <div className="form-group normal-width">
+                <label htmlFor="search">Search for a clue</label>
+                <input
+                    type="text"
+                    id="search"
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            <div className="clue-list">
                 {data?.map((clue, i) => (
-                    <li key={i}>
-                        {clue.clue}: {clue.answer}
-                    </li>
+                    <div className="clue" key={i}>
+                        <span>{clue.clue}</span>
+                        <Answer word={clue.answer.toUpperCase()} />
+                    </div>
                 ))}
-            </ul>
-        </>
+            </div>
+        </div>
     );
 };
 
