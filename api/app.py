@@ -182,7 +182,7 @@ def get_banks():
     user_id = request.json.get("user_id")
     
 
-@app.route("/get-clues", methods=["GET"])
+@app.route("/get-clues", methods=["GET", "POST"])
 def get_clues():
     user_id = request.json.get("user_id")
     bank_id = request.json.get("bank_id")
@@ -204,6 +204,8 @@ def get_clues():
         args.append(length)
         query += " AND LENGTH(answer) = %s"
     
+    print(query)
+    
     try:
         cursor.execute(query, args)
         res = cursor.fetchall()
@@ -212,6 +214,7 @@ def get_clues():
         return jsonify({"message": "error occurred fetching clues"}), 500
     
     if not res:
+        print("no clues cuz", query)
         return jsonify({"message": "no clues found matching"}), 400
     
     data = [{
@@ -231,7 +234,7 @@ def get_clues():
     semantic_scores = cosine_similarity(search_embedding, clue_embeddings)[0]
     matching_scores = [difflib.SequenceMatcher(None, search_term, clue).ratio() for clue in clues]
     
-    scores = [semantic_scores[i] + matching_scores[i] for i in range(len(clues))]
+    scores = [0.8 * semantic_scores[i] + 0.2 * matching_scores[i] for i in range(len(clues))]
     
     res = sorted(zip(scores, data), key=lambda x: x[0], reverse=True)
     return jsonify({"data": [row[1] for row in res if row[0] > 0.1]}), 200
