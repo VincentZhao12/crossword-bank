@@ -2,8 +2,12 @@ import React, { FC, useMemo, useState } from 'react';
 import Answer from '../components/Answer';
 import '../styles/Clues.css';
 import '../styles/Signup.css';
+import { useParams } from 'react-router-dom';
 
-interface CluesProps {}
+interface CluesProps {
+    filter?: 'user' | 'bank';
+    id?: string | number;
+}
 
 interface Clue {
     answer: string;
@@ -11,16 +15,20 @@ interface Clue {
     id: number;
 }
 
-const Clues: FC<CluesProps> = () => {
+const Clues: FC<CluesProps> = ({ filter, id }) => {
     const [data, setData] = useState<Clue[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const paramId = useParams().id;
 
     useMemo(async () => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const raw = JSON.stringify({
             search_term: searchTerm,
+            user_id: filter === 'user' ? id ?? paramId : '',
+            bank_id: filter === 'bank' ? id ?? paramId : '',
         });
+        console.log(raw);
         const endpoint = process.env.REACT_APP_API_URL + '/get-clues';
 
         console.log('Fetching data');
@@ -38,7 +46,7 @@ const Clues: FC<CluesProps> = () => {
         } catch (e) {
             console.log(e);
         }
-    }, [searchTerm]);
+    }, [searchTerm, filter, id, paramId]);
 
     return (
         <div className="clues-container">

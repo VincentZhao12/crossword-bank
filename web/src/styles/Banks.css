@@ -1,0 +1,78 @@
+.bank-card {
+    width: 10rem;
+    height: 10rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* border-width: 1;
+    border-color: black;
+    border-style: solid;
+    overflow: hidden; */
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10%;
+    flex-direction: column;
+    padding: 1em;
+    text-decoration: 0;
+}
+
+.bank-card > * {
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+}
+
+.create-card {
+    color: gray;
+}
+
+.bank-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.card-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1em;
+    padding: 2em;
+}
+
+.modal-container {
+    display: flex;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.1);
+    top: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-card {
+    width: 40%;
+    height: 40%;
+    background-color: white;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 5%;
+    padding: 2em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.create-button {
+    background-color: var(--primary-main);
+}
+
+.create-button:hover {
+    background-color: var(--primary-light);
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+}

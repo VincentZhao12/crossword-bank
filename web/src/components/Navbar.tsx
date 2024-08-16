@@ -1,12 +1,23 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css';
-import { useAuth } from '../contexts/AuthContext';
+import { parseJwt, useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {}
 
 const Navbar: FC<NavbarProps> = () => {
     const { loggedIn, logout } = useAuth();
+    const [userId, setUserId] = useState<string>('');
+
+    useEffect(() => {
+        if (loggedIn) {
+            const data = parseJwt(localStorage.getItem('token') ?? '');
+            if (data) {
+                setUserId(data.user_id);
+            }
+        }
+    }, [loggedIn]);
+
     return (
         <div className="nav">
             <div className="subnav">
@@ -16,9 +27,11 @@ const Navbar: FC<NavbarProps> = () => {
                 <Link className="link" to="/clues">
                     <h3>All Clues</h3>
                 </Link>
-                <Link className="link" to="/my-banks">
-                    <h3>My Banks</h3>
-                </Link>
+                {loggedIn && (
+                    <Link className="link" to={'/banks/' + userId}>
+                        <h3>My Banks</h3>
+                    </Link>
+                )}
             </div>
             <div className="subnav">
                 {!loggedIn ? (
@@ -28,7 +41,7 @@ const Navbar: FC<NavbarProps> = () => {
                         </Link>
                         <Link className="link" to="/sign-up">
                             <h3>Sign Up</h3>
-                        </Link>{' '}
+                        </Link>
                     </>
                 ) : (
                     <span onClick={logout} className="clickable">

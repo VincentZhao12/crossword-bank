@@ -13,9 +13,9 @@ const Home: FC<HomeProps> = () => {
             <p className="para">
                 Keep your most pesky crossword clues stored here so you'll never
                 lose them again! You'll never forget <b>ACME</b> is a high
-                point, that the Taj Mahal is in Agra, and who Yoko <b>ONO</b>{' '}
-                is. Browse other people's clues to see their most annoying
-                clues.
+                point, that the Taj Mahal is in <b>Agra</b>, and who Yoko{' '}
+                <b>ONO</b> is. Browse other people's clues to see their most
+                annoying clues.
             </p>
             <div className="actions">
                 <button onClick={() => navigate('/clues')} className="clues">

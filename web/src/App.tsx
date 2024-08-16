@@ -6,6 +6,8 @@ import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Clues from './pages/Clues';
 import { AuthProvider } from './contexts/AuthContext';
+import Banks from './pages/Banks';
+import Bank from './pages/Bank';
 
 function App() {
     return (
@@ -17,6 +19,12 @@ function App() {
                     <Route element={<Signup />} path="/sign-up" />
                     <Route element={<Login />} path="/log-in" />
                     <Route element={<Clues />} path="/clues" />
+                    <Route element={<Bank />} path="/clues/bank/:id" />
+                    <Route
+                        element={<Clues filter="user" />}
+                        path="/clues/user/:id"
+                    />
+                    <Route element={<Banks />} path="/banks/:userId" />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>

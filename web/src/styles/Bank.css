@@ -1,0 +1,14 @@
+.clue-input-area {
+    width: 60%;
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+}
+
+.big-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}

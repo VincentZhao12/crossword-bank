@@ -177,10 +177,37 @@ def add_clue():
     
     return jsonify({"message": "success"}), 200
     
-@app.route("/get-banks", methods=["GET"])
+@app.route("/get-banks", methods=["POST"])
 def get_banks():
     user_id = request.json.get("user_id")
-    
+    if not user_id:
+        token = request.json.get("token")
+        user_id = check_auth(token)
+        if user_id <= 0:
+            user_id = None
+        
+    if not user_id:
+        try:
+            cursor.execute(SELECT_BANKS)
+            res = cursor.fetchall()
+        except:
+            return jsonify({"message": "error occurred fetching clue"}), 500
+        return jsonify({"data": [{
+            "bank_id": row[0],
+            "user_id": row[1],
+            "title": row[2]
+        } for row in res]})
+
+    try:
+        cursor.execute(SELECT_BANKS_USER, [user_id])
+        res = cursor.fetchall()
+    except:
+        return jsonify({"message": "error occurred fetching banks"}), 500
+    return jsonify({"data": [{
+        "bank_id": row[0],
+        "user_id": row[1],
+        "title": row[2]
+    } for row in res]})
 
 @app.route("/get-clues", methods=["GET", "POST"])
 def get_clues():
