@@ -8,6 +8,7 @@ import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 import difflib
 from flask_cors import CORS
+import functools
 
 from sentence_transformers import SentenceTransformer
 
@@ -25,6 +26,11 @@ SELECT_BANKS_USER = "SELECT * FROM banks WHERE user_id = %s"
 SELECT_CLUES = "SELECT * FROM clues WHERE 1 = 1"
 SELECT_CLUES_USER = "SELECT * FROM clues WHERE user_id = %s"
 SELECT_CLUES_BANK = "SELECT * FROM clues WHERE bank_id = %s"
+CHECK_BANK_OWNERSHIP = "SELECT * FROM banks WHERE id = %s AND user_id = %s"
+
+DELETE_BANK = "DELETE FROM banks WHERE id = %s"
+DELETE_CLUE = "DELETE FROM clues WHERE id = %s"
+DELETE_CLUE_BANK = "DELETE FROM clues WHERE bank_id = %s"
 
 load_dotenv()
 
@@ -33,16 +39,22 @@ port = os.getenv("DATABASE_PORT")
 user = os.getenv("DATABASE_USER")
 password = os.getenv("DATABASE_PASSWORD")
 
-connection = psycopg2.connect(host=hostname, port=port, user=user, password=password)
-connection.autocommit = True
-cursor = connection.cursor()
-
 app = Flask(__name__)
 
 cors = CORS(app)
 
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["AUTH_SECRET_KEY"] = os.getenv("JWT_SECRET")
+
+def execute(query, params, fetch="none"):
+    with psycopg2.connect(host=hostname, port=port, user=user, password=password) as connection:
+        connection.autocommit = True
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            if fetch == "one":
+                return cursor.fetchone()
+            elif fetch == "all":
+                return cursor.fetchall()
 
 @app.route("/sign-up", methods=["POST"])
 def signup():
@@ -67,8 +79,7 @@ def signup():
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     
     try:
-        cursor.execute(SIGNUP_USER, (email, name, hashed_password.decode("utf-8"), salt.decode("utf-8")))
-        user_id = cursor.fetchone()
+        user_id = execute(SIGNUP_USER, (email, name, hashed_password.decode("utf-8"), salt.decode("utf-8")), "one")
         token = jwt.encode({'user_id': user_id[0], "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)}, app.config["AUTH_SECRET_KEY"])
         
         print("token: ", token)
@@ -89,8 +100,7 @@ def login():
     if not password:
         return jsonify({"message": "password is required"}), 400
     
-    cursor.execute(SELECT_LOGIN, [email])
-    res = cursor.fetchone()
+    res = execute(SELECT_LOGIN, [email], "one")
     
     if not res:
         return jsonify({"message": "email not found"}), 400
@@ -129,8 +139,7 @@ def create_bank():
         return jsonify({"message": "title required"}), 400
     
     try:
-        cursor.execute(CREATE_BANK, (user_id, title))
-        bank_id = cursor.fetchone()[0]
+        bank_id = execute(CREATE_BANK, (user_id, title), "one")[0]
     except Exception as e:
         print("error", e)
         return jsonify({"message": "error occurred creating bank"}), 500
@@ -156,8 +165,7 @@ def add_clue():
     if not answer:
         return jsonify({"message": "answer required"}), 400
     
-    cursor.execute(SELECT_EDITORS, [bank_id])
-    res = cursor.fetchone()
+    res = execute(SELECT_EDITORS, [bank_id], "one")
     
     print(res)
     
@@ -170,7 +178,7 @@ def add_clue():
         return jsonify({"message": "user cannot modify clue bank"}), 400
     
     try:
-        cursor.execute(CREATE_CLUE, (clue, answer, user_id, bank_id))
+        execute(CREATE_CLUE, (clue, answer, user_id, bank_id), "none")
     except Exception as e:
         print("error", e)
         return jsonify({"message": "error occurred creating clue"}), 500
@@ -188,8 +196,7 @@ def get_banks():
         
     if not user_id:
         try:
-            cursor.execute(SELECT_BANKS)
-            res = cursor.fetchall()
+            res = execute(SELECT_BANKS, "all")
         except:
             return jsonify({"message": "error occurred fetching clue"}), 500
         return jsonify({"data": [{
@@ -199,8 +206,7 @@ def get_banks():
         } for row in res]})
 
     try:
-        cursor.execute(SELECT_BANKS_USER, [user_id])
-        res = cursor.fetchall()
+        res = execute(SELECT_BANKS_USER, [user_id], "all")
     except:
         return jsonify({"message": "error occurred fetching banks"}), 500
     return jsonify({"data": [{
@@ -208,7 +214,28 @@ def get_banks():
         "user_id": row[1],
         "title": row[2]
     } for row in res]})
-
+    
+@app.route("/check-owner", methods=["POST"])
+def check_owner():
+    token = request.json.get("token")
+    bank_id = request.json.get("bank_id")
+    
+    user_id = check_auth(token)
+    
+    if not bank_id or user_id < 0:
+        return jsonify({"message": "error occurred fetching banks"}), 400
+    
+    try:
+        res = execute(CHECK_BANK_OWNERSHIP, (bank_id, user_id), "all")
+        print(res)
+        if res:
+            return jsonify({"message": "yup", "data": True}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"message": "error occurred fetching banks"}), 500
+    
+    return jsonify({"message": "you are not owner", "data": False}), 400
+    
 @app.route("/get-clues", methods=["GET", "POST"])
 def get_clues():
     user_id = request.json.get("user_id")
@@ -234,8 +261,7 @@ def get_clues():
     print(query)
     
     try:
-        cursor.execute(query, args)
-        res = cursor.fetchall()
+        res = execute(query, args, "all")
     except Exception  as e:
         print(e)
         return jsonify({"message": "error occurred fetching clues"}), 500
@@ -266,4 +292,6 @@ def get_clues():
     res = sorted(zip(scores, data), key=lambda x: x[0], reverse=True)
     return jsonify({"data": [row[1] for row in res if row[0] > 0.1]}), 200
     
-    
+@app.route("/delete-bank", methods=["POST"])
+def delete_bank():
+    pass

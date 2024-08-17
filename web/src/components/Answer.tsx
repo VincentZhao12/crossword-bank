@@ -19,6 +19,7 @@ const Answer: FC<AnswerProps> = ({ word }) => {
             {flipped.map((val, i) => (
                 <div
                     className="answer-box"
+                    key={i}
                     onClick={() => {
                         const vals = [...flipped];
                         vals[i] = !vals[i];

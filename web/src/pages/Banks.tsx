@@ -2,6 +2,7 @@ import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/Banks.css';
 import { parseJwt, useAuth } from '../contexts/AuthContext';
+import Spinner from '../components/Spinner';
 
 interface BanksProps {}
 interface Bank {
@@ -19,8 +20,13 @@ const Banks: FC<BanksProps> = () => {
     const [error, setError] = useState<string>('');
     const { loggedIn, logout } = useAuth();
     const [isOwner, setIsOwner] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
+        if (!loggedIn && isOwner) {
+            setIsOwner(false);
+            return;
+        }
         if (!loggedIn) return;
 
         const token = localStorage.getItem('token');
@@ -33,8 +39,8 @@ const Banks: FC<BanksProps> = () => {
 
         console.log(currUser);
 
-        setIsOwner(currUser == userId);
-    }, [loggedIn]);
+        setIsOwner(currUser.toString() === userId);
+    }, [loggedIn, logout, userId]);
 
     const handleSubmit = async () => {
         if (!title) {
@@ -71,6 +77,7 @@ const Banks: FC<BanksProps> = () => {
     };
 
     useMemo(async () => {
+        setLoading(true);
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const raw = JSON.stringify({
@@ -92,9 +99,14 @@ const Banks: FC<BanksProps> = () => {
         } catch (e) {
             return [];
         }
+        setLoading(false);
     }, [userId]);
 
-    return (
+    return loading ? (
+        <div className="centered">
+            <Spinner />
+        </div>
+    ) : (
         <>
             <div className="card-container">
                 {isOwner && (

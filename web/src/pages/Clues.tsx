@@ -3,10 +3,12 @@ import Answer from '../components/Answer';
 import '../styles/Clues.css';
 import '../styles/Signup.css';
 import { useParams } from 'react-router-dom';
+import Spinner from '../components/Spinner';
 
 interface CluesProps {
     filter?: 'user' | 'bank';
     id?: string | number;
+    dummy?: number;
 }
 
 interface Clue {
@@ -15,12 +17,14 @@ interface Clue {
     id: number;
 }
 
-const Clues: FC<CluesProps> = ({ filter, id }) => {
+const Clues: FC<CluesProps> = ({ filter, id, dummy }) => {
     const [data, setData] = useState<Clue[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const paramId = useParams().id;
+    const [loading, setLoading] = useState<boolean>(false);
 
     useMemo(async () => {
+        setLoading(true);
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const raw = JSON.stringify({
@@ -46,7 +50,10 @@ const Clues: FC<CluesProps> = ({ filter, id }) => {
         } catch (e) {
             console.log(e);
         }
-    }, [searchTerm, filter, id, paramId]);
+        console.log(dummy);
+
+        setLoading(false);
+    }, [searchTerm, filter, id, paramId, dummy]);
 
     return (
         <div className="clues-container">
@@ -59,14 +66,18 @@ const Clues: FC<CluesProps> = ({ filter, id }) => {
                 />
             </div>
 
-            <div className="clue-list">
-                {data?.map((clue, i) => (
-                    <div className="clue" key={i}>
-                        <span>{clue.clue}</span>
-                        <Answer word={clue.answer.toUpperCase()} />
-                    </div>
-                ))}
-            </div>
+            {loading ? (
+                <Spinner />
+            ) : (
+                <div className="clue-list">
+                    {data?.map((clue, i) => (
+                        <div className="clue" key={clue.id}>
+                            <span>{clue.clue}</span>
+                            <Answer word={clue.answer.toUpperCase()} />
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
