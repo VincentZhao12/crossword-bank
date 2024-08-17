@@ -26,6 +26,8 @@ SELECT_BANKS_USER = "SELECT * FROM banks WHERE user_id = %s"
 SELECT_CLUES = "SELECT * FROM clues WHERE 1 = 1"
 SELECT_CLUES_USER = "SELECT * FROM clues WHERE user_id = %s"
 SELECT_CLUES_BANK = "SELECT * FROM clues WHERE bank_id = %s"
+SELECT_CLUE = "SELECT * FROM clues WHERE id = %s"
+
 CHECK_BANK_OWNERSHIP = "SELECT * FROM banks WHERE id = %s AND user_id = %s"
 
 DELETE_BANK = "DELETE FROM banks WHERE id = %s"
@@ -294,4 +296,65 @@ def get_clues():
     
 @app.route("/delete-bank", methods=["POST"])
 def delete_bank():
-    pass
+    token = request.json.get("token")
+    bank_id = request.json.get("bank_id")
+    
+    user_id = check_auth(token)
+    
+    if user_id <= 0:
+        return jsonify({"message": "valid auth token required"}), 400
+    if not bank_id:
+        return jsonify({"message": "bank_id required"}), 400
+    
+    res = execute(SELECT_EDITORS, [bank_id], "one")
+    
+    print(res)
+    
+    if not res:
+        return jsonify({"message": "bank doesn't exist"}), 400
+    
+    owner = res[0]
+    
+    if user_id != owner:
+        return jsonify({"message": "user cannot modify clue bank"}), 400
+    
+    try:
+        execute(DELETE_CLUE_BANK, (bank_id), "none")
+        execute(DELETE_BANK, (bank_id), "none")
+    except Exception as e:
+        print("error", e)
+        return jsonify({"message": "error occurred deleting bank"}), 500
+    
+    return jsonify({"message": "success"}), 200
+        
+@app.route("/delete-clue", methods=["POST"])
+def delete_clue():
+    token = request.json.get("token")
+    clue_id = request.json.get("clue_id")
+    
+    user_id = check_auth(token)
+    
+    if user_id <= 0:
+        return jsonify({"message": "valid auth token required"}), 400
+    if not clue_id:
+        return jsonify({"message": "clue_id required"}), 400
+    
+    res = execute(SELECT_CLUE, [clue_id], "one")
+    
+    print(res)
+    
+    if not res:
+        return jsonify({"message": "clue doesn't exist"}), 400
+    
+    owner = res[0]
+    
+    if user_id != owner:
+        return jsonify({"message": "user cannot modify clue bank"}), 400
+    
+    try:
+        execute(DELETE_CLUE, (clue_id), "none")
+    except Exception as e:
+        print("error", e)
+        return jsonify({"message": "error occurred deleting clue"}), 500
+    
+    return jsonify({"message": "success"}), 200
