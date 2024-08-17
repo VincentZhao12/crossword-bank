@@ -1,11 +1,23 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import '../styles/Home.css';
 import { useNavigate } from 'react-router-dom';
+import { parseJwt, useAuth } from '../contexts/AuthContext';
 
 interface HomeProps {}
 
 const Home: FC<HomeProps> = () => {
     const navigate = useNavigate();
+    const [userId, setUserId] = useState<string>('');
+    const { loggedIn } = useAuth();
+
+    useEffect(() => {
+        if (loggedIn) {
+            const data = parseJwt(localStorage.getItem('token') ?? '');
+            if (data) {
+                setUserId(data.user_id);
+            }
+        }
+    }, [loggedIn]);
 
     return (
         <div className="home">
@@ -22,10 +34,12 @@ const Home: FC<HomeProps> = () => {
                     Browse Clues
                 </button>
                 <button
-                    onClick={() => navigate('/my-banks')}
+                    onClick={() =>
+                        navigate(loggedIn ? '/banks/' + userId : '/sign-up')
+                    }
                     className="primary"
                 >
-                    View Your Banks
+                    {loggedIn ? 'View Your Banks' : 'Sign Up'}
                 </button>
             </div>
         </div>
