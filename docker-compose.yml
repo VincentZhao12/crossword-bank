@@ -1,0 +1,10 @@
+version: '2.21'
+services:
+    web:
+        build: ./web
+        ports:
+            - 3000:3000
+    api:
+        build: ./api
+        ports:
+            - 5000:5000
