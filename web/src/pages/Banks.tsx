@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/Banks.css';
 import { parseJwt, useAuth } from '../contexts/AuthContext';
 import Spinner from '../components/Spinner';
+import Modal from '../components/Modal';
+import { FaTrashAlt } from 'react-icons/fa';
 
 interface BanksProps {}
 interface Bank {
@@ -15,12 +17,15 @@ const Banks: FC<BanksProps> = () => {
     const { userId } = useParams();
     const [banks, setBanks] = useState<Bank[]>([]);
     const navigate = useNavigate();
-    const [showModal, setShowModal] = useState<boolean>(false);
+    const [showModalCreate, setShowModalCreate] = useState<boolean>(false);
+    const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
     const [title, setTitle] = useState<string>('');
     const [error, setError] = useState<string>('');
     const { loggedIn, logout } = useAuth();
     const [isOwner, setIsOwner] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+    const [selectedBank, setSelectedBank] = useState<number | string>();
+    const [dummy, setDummy] = useState<number>(0);
 
     useEffect(() => {
         if (!loggedIn && isOwner) {
@@ -40,7 +45,7 @@ const Banks: FC<BanksProps> = () => {
         console.log(currUser);
 
         setIsOwner(currUser.toString() === userId);
-    }, [loggedIn, logout, userId]);
+    }, [loggedIn, logout, userId, isOwner]);
 
     const handleSubmit = async () => {
         if (!title) {
@@ -100,7 +105,38 @@ const Banks: FC<BanksProps> = () => {
             return [];
         }
         setLoading(false);
-    }, [userId]);
+        console.log(dummy);
+    }, [userId, dummy]);
+
+    const handleDelete = async () => {
+        const headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+
+        const endpoint = process.env.REACT_APP_API_URL + '/delete-bank';
+        const raw = JSON.stringify({
+            token: localStorage.getItem('token') ?? '',
+            bank_id: selectedBank,
+        });
+
+        try {
+            const res = await fetch(endpoint, {
+                headers,
+                body: raw,
+                method: 'POST',
+            });
+            const json = await res.json();
+
+            if (!res.ok) {
+                setError(json.message);
+                return;
+            }
+            setShowModalDelete(false);
+            setDummy(dummy * -1);
+        } catch (e) {
+            console.log(e);
+            setError('Unknown error occurred');
+        }
+    };
 
     return loading ? (
         <div className="centered">
@@ -112,7 +148,7 @@ const Banks: FC<BanksProps> = () => {
                 {isOwner && (
                     <div
                         className="bank-card create-card"
-                        onClick={() => setShowModal(true)}
+                        onClick={() => setShowModalCreate(true)}
                     >
                         <h1>+</h1>
                         <h3>Create New Bank</h3>
@@ -130,50 +166,74 @@ const Banks: FC<BanksProps> = () => {
                         key={bank.bank_id}
                         onClick={() => navigate('/clues/bank/' + bank.bank_id)}
                     >
-                        <h3>{bank.title}</h3>
+                        <div className="inner-flex">
+                            {isOwner && (
+                                <button
+                                    aria-label="delete bank"
+                                    className="icon-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedBank(bank.bank_id);
+                                        setShowModalDelete(true);
+                                    }}
+                                >
+                                    <FaTrashAlt />
+                                </button>
+                            )}
+                            <h3 className="bank-title">{bank.title}</h3>
+                        </div>
                     </div>
                 ))}
             </div>
-            {showModal && (
-                <div className="modal-container">
-                    <div className="modal-card">
-                        <h2>Create New Clue Bank</h2>
-                        {error && (
-                            <span className="error-message">
-                                <b>Error: </b> {error}
-                            </span>
-                        )}
-                        <div className="form-group enter-title">
-                            <label htmlFor="title-input">
-                                Enter the name of your bank here
-                            </label>
-                            <input
-                                type="text"
-                                id="title-input"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                            />
-                        </div>
-                        <div className="button-group">
-                            <button
-                                onClick={() => {
-                                    setShowModal(false);
-                                    setTitle('');
-                                    setError('');
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="create-button"
-                                onClick={handleSubmit}
-                            >
-                                Create
-                            </button>
-                        </div>
-                    </div>
+            <Modal
+                open={showModalCreate}
+                title="Create New Clue Bank"
+                onCancel={() => {
+                    setShowModalCreate(false);
+                    setTitle('');
+                    setError('');
+                }}
+                onConfirm={handleSubmit}
+            >
+                {error && (
+                    <span className="error-message">
+                        <b>Error: </b> {error}
+                    </span>
+                )}
+                <div className="form-group enter-title">
+                    <label htmlFor="title-input">
+                        Enter the name of your bank here
+                    </label>
+                    <input
+                        type="text"
+                        id="title-input"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
                 </div>
-            )}{' '}
+            </Modal>
+            <Modal
+                open={showModalDelete}
+                title="Delete Clue Bank"
+                onCancel={() => {
+                    setShowModalDelete(false);
+                    setSelectedBank('');
+                    setTitle('');
+                    setError('');
+                }}
+                onConfirm={handleDelete}
+            >
+                {error && (
+                    <span className="error-message">
+                        <b>Error: </b> {error}
+                    </span>
+                )}
+                <div className="form-group enter-title">
+                    <label htmlFor="title-input">
+                        Are you sure you would like to delete this bank?
+                    </label>
+                </div>
+            </Modal>
         </>
     );
 };

@@ -298,6 +298,7 @@ def get_clues():
 def delete_bank():
     token = request.json.get("token")
     bank_id = request.json.get("bank_id")
+    print(bank_id)
     
     user_id = check_auth(token)
     
@@ -319,8 +320,8 @@ def delete_bank():
         return jsonify({"message": "user cannot modify clue bank"}), 400
     
     try:
-        execute(DELETE_CLUE_BANK, (bank_id), "none")
-        execute(DELETE_BANK, (bank_id), "none")
+        execute(DELETE_CLUE_BANK, [bank_id], "none")
+        execute(DELETE_BANK, [bank_id], "none")
     except Exception as e:
         print("error", e)
         return jsonify({"message": "error occurred deleting bank"}), 500
@@ -342,17 +343,18 @@ def delete_clue():
     res = execute(SELECT_CLUE, [clue_id], "one")
     
     print(res)
+    print(user_id)
     
     if not res:
         return jsonify({"message": "clue doesn't exist"}), 400
     
-    owner = res[0]
+    owner = res[3]
     
     if user_id != owner:
         return jsonify({"message": "user cannot modify clue bank"}), 400
     
     try:
-        execute(DELETE_CLUE, (clue_id), "none")
+        execute(DELETE_CLUE, [clue_id], "none")
     except Exception as e:
         print("error", e)
         return jsonify({"message": "error occurred deleting clue"}), 500
