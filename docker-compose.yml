@@ -3,7 +3,11 @@ services:
     web:
         build: ./web
         ports:
-            - 3000:3000
+            - 3000:80
+        environment:
+            - FLASK_ENV=production
+        depends_on:
+            - api
     api:
         build: ./api
         ports:

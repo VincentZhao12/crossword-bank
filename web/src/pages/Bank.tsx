@@ -1,13 +1,13 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import Clues from './Clues';
-import { parseJwt, useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 import '../styles/Bank.css';
 
 interface BankProps {}
 
 const Bank: FC<BankProps> = () => {
-    const { loggedIn, logout } = useAuth();
+    const { loggedIn } = useAuth();
     const { id } = useParams();
     const [clue, setClue] = useState<string>('');
     const [answer, setAnswer] = useState<string>('');
