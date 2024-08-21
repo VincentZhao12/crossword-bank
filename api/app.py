@@ -58,6 +58,10 @@ def execute(query, params, fetch="none"):
             elif fetch == "all":
                 return cursor.fetchall()
 
+@app.route("/")
+def home():
+    return "hello world!"
+
 @app.route("/sign-up", methods=["POST"])
 def signup():
     email = request.json.get("email")
