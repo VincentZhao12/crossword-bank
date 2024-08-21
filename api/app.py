@@ -8,7 +8,6 @@ import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 import difflib
 from flask_cors import CORS
-import functools
 
 from sentence_transformers import SentenceTransformer
 
