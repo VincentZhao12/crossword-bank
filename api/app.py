@@ -20,11 +20,59 @@ CREATE_BANK = "INSERT INTO banks (id, user_id, title) VALUES (DEFAULT, %s, %s) R
 SELECT_EDITORS = "SELECT user_id FROM banks WHERE id = %s"
 CREATE_CLUE = "INSERT INTO clues (id, clue, answer, user_id, bank_id) VALUES (DEFAULT, %s, %s, %s, %s)"
 
-SELECT_BANKS = "SELECT * FROM banks"
-SELECT_BANKS_USER = "SELECT * FROM banks WHERE user_id = %s"
-SELECT_CLUES = "SELECT * FROM clues WHERE 1 = 1"
-SELECT_CLUES_USER = "SELECT * FROM clues WHERE user_id = %s"
-SELECT_CLUES_BANK = "SELECT * FROM clues WHERE bank_id = %s"
+SELECT_BANKS = "SELECT clues* FROM banks"
+SELECT_BANKS_USER = "SELECT * FROM banks WHERE banks.user_id = %s"
+SELECT_CLUES = """
+    SELECT 
+        clues.id,
+        clues.clue,
+        clues.answer, 
+        clues.bank_id,
+        clues.user_id,
+        banks.title AS bank_name, 
+        users.username 
+    FROM 
+        clues
+    JOIN 
+        banks ON clues.bank_id = banks.id
+    JOIN 
+        users ON clues.user_id = users.id
+    WHERE 1 = 1
+"""
+SELECT_CLUES_USER = """
+    SELECT 
+        clues.id,
+        clues.clue,
+        clues.answer, 
+        clues.bank_id,
+        clues.user_id,
+        banks.title AS bank_name, 
+        users.username 
+    FROM 
+        clues
+    JOIN 
+        banks ON clues.bank_id = banks.id
+    JOIN 
+        users ON clues.user_id = users.id
+    WHERE clues.user_id = %s
+"""
+SELECT_CLUES_BANK = """
+    SELECT 
+        clues.id,
+        clues.clue,
+        clues.answer, 
+        clues.bank_id,
+        clues.user_id,
+        banks.title AS bank_name, 
+        users.username 
+    FROM 
+        clues
+    JOIN 
+        banks ON clues.bank_id = banks.id
+    JOIN 
+        users ON clues.user_id = users.id
+    WHERE clues.bank_id = %s
+"""
 SELECT_CLUE = "SELECT * FROM clues WHERE id = %s"
 
 CHECK_BANK_OWNERSHIP = "SELECT * FROM banks WHERE id = %s AND user_id = %s"
@@ -86,8 +134,6 @@ def signup():
     try:
         user_id = execute(SIGNUP_USER, (email, name, hashed_password.decode("utf-8"), salt.decode("utf-8")), "one")
         token = jwt.encode({'user_id': user_id[0], "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)}, app.config["AUTH_SECRET_KEY"])
-        
-        print("token: ", token)
     except Exception as e:
         print("An exception occurred: ", e)
         return jsonify({"message": "email already exists"}), 400
@@ -112,8 +158,6 @@ def login():
     [id, hashed_pw, salt] = res
     
     check_pw = bcrypt.hashpw(password.encode("utf-8"), salt.encode("utf-8"))
-    print(check_pw)
-    print(res)
     
     if hashed_pw == check_pw.decode("utf-8"):
         token = jwt.encode({'user_id': id, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)}, app.config["AUTH_SECRET_KEY"])
@@ -127,7 +171,6 @@ def check_auth(token):
     try:
         data = jwt.decode(token, app.config["AUTH_SECRET_KEY"], algorithms=["HS256"])
     except Exception as e:
-        print(e)
         return -2
     return data["user_id"]
 
@@ -146,7 +189,6 @@ def create_bank():
     try:
         bank_id = execute(CREATE_BANK, (user_id, title), "one")[0]
     except Exception as e:
-        print("error", e)
         return jsonify({"message": "error occurred creating bank"}), 500
     return jsonify({"bank_id": bank_id, "message": "bank created"}), 200
 
@@ -171,8 +213,6 @@ def add_clue():
         return jsonify({"message": "answer required"}), 400
     
     res = execute(SELECT_EDITORS, [bank_id], "one")
-    
-    print(res)
     
     if not res:
         return jsonify({"message": "bank doesn't exist"}), 400
@@ -232,7 +272,6 @@ def check_owner():
     
     try:
         res = execute(CHECK_BANK_OWNERSHIP, (bank_id, user_id), "all")
-        print(res)
         if res:
             return jsonify({"message": "yup", "data": True}), 200
     except Exception as e:
@@ -263,8 +302,6 @@ def get_clues():
         args.append(length)
         query += " AND LENGTH(answer) = %s"
     
-    print(query)
-    
     try:
         res = execute(query, args, "all")
     except Exception  as e:
@@ -279,6 +316,10 @@ def get_clues():
         "id": row[0],
         "clue": row[1],
         "answer": row[2],
+        "bank_id": row[3],
+        "user_id": row[4],
+        "bank_name": row[5],
+        "user_name": row[6],
     } for row in res]
     
     if not search_term:
@@ -301,7 +342,6 @@ def get_clues():
 def delete_bank():
     token = request.json.get("token")
     bank_id = request.json.get("bank_id")
-    print(bank_id)
     
     user_id = check_auth(token)
     
@@ -311,8 +351,6 @@ def delete_bank():
         return jsonify({"message": "bank_id required"}), 400
     
     res = execute(SELECT_EDITORS, [bank_id], "one")
-    
-    print(res)
     
     if not res:
         return jsonify({"message": "bank doesn't exist"}), 400
@@ -345,8 +383,6 @@ def delete_clue():
     
     res = execute(SELECT_CLUE, [clue_id], "one")
     
-    print(res)
-    print(user_id)
     
     if not res:
         return jsonify({"message": "clue doesn't exist"}), 400

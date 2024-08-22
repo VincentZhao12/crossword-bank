@@ -82,7 +82,6 @@ const Bank: FC<BankProps> = () => {
         setError('');
         setDummy(-dummy);
     };
-
     return (
         <div className="big-container">
             {isOwner && (
@@ -117,7 +116,7 @@ const Bank: FC<BankProps> = () => {
                     </div>
                 </>
             )}
-            <Clues filter="bank" id={id} dummy={dummy} isOwner />
+            <Clues filter="bank" id={id} dummy={dummy} isOwner={isOwner} />
         </div>
     );
 };

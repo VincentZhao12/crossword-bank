@@ -1,8 +1,8 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import Answer from '../components/Answer';
 import '../styles/Clues.css';
 import '../styles/Signup.css';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import { FaTrashAlt } from 'react-icons/fa';
 
@@ -17,6 +17,10 @@ interface Clue {
     answer: string;
     clue: string;
     id: number;
+    user_name: string;
+    bank_name: string;
+    user_id: string;
+    bank_id: string;
 }
 
 const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
@@ -26,9 +30,17 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [dummy2, setDummy2] = useState<number>(0);
     const [error, setError] = useState<string>();
+    const abortControllerRef = useRef<AbortController | null>(null);
 
-    useMemo(async () => {
+    const fetchData = async () => {
         setLoading(true);
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        abortControllerRef.current = new AbortController();
+        const { signal } = abortControllerRef.current;
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const raw = JSON.stringify({
@@ -46,17 +58,25 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
                 headers,
                 method: 'POST',
                 body: raw,
+                signal,
             });
 
             const json = await res.json();
-
+            console.log(json.data);
             setData(json.data);
-        } catch (e) {
-            console.log(e);
+        } catch (e: any) {
+            if (e.name === 'AbortError') {
+                console.log('aborted', searchTerm);
+            } else {
+                console.log(e);
+            }
         }
-        console.log(dummy);
 
         setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchData();
     }, [searchTerm, filter, id, paramId, dummy, dummy2]);
 
     const handleDelete = async (clueId: number | string) => {
@@ -108,23 +128,56 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
             {loading ? (
                 <Spinner />
             ) : (
-                <div className="clue-list">
-                    {data?.map((clue, i) => (
-                        <div className="clue" key={clue.id}>
-                            {isOwner && (
-                                <button
-                                    aria-label="delete bank"
-                                    className="icon-button"
-                                    onClick={() => handleDelete(clue.id)}
-                                >
-                                    <FaTrashAlt />
-                                </button>
-                            )}
-                            <span>{clue.clue}</span>
-                            <Answer word={clue.answer.toUpperCase()} />
-                        </div>
-                    ))}
-                </div>
+                <table className="clue-list">
+                    <thead>
+                        <tr>
+                            {isOwner && <th>Delete</th>}
+                            <th>Clue</th>
+                            <th>User</th>
+                            <th>Bank</th>
+                            <th>Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data?.map((clue, i) => (
+                            <tr key={clue.id}>
+                                {isOwner && (
+                                    <td>
+                                        <button
+                                            aria-label="delete bank"
+                                            className="icon-button"
+                                            onClick={() =>
+                                                handleDelete(clue.id)
+                                            }
+                                        >
+                                            <FaTrashAlt />
+                                        </button>
+                                    </td>
+                                )}
+                                <td>{clue.clue}</td>
+                                <td>
+                                    <Link
+                                        className="red-link"
+                                        to={'/clues/user/' + clue.user_id}
+                                    >
+                                        {clue.user_name}
+                                    </Link>
+                                </td>
+                                <td>
+                                    <Link
+                                        className="red-link"
+                                        to={'/clues/bank/' + clue.bank_id}
+                                    >
+                                        {clue.bank_name}
+                                    </Link>
+                                </td>
+                                <td className="answer-cell">
+                                    <Answer word={clue.answer.toUpperCase()} />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
         </div>
     );

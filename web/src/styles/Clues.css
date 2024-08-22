@@ -4,13 +4,36 @@
     width: 60%;
 }
 
+/* Style the table */
 .clue-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0.25em;
+    width: 80%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+/* Style the table rows */
+.clue-list tr {
+    border-bottom: 1px solid #ddd;
+}
+
+/* Style the table cells */
+.clue-list td {
+    /* padding: 12px; */
+    vertical-align: middle;
+    padding: 0.5em 0em;
+    min-width: 7em;
+}
+
+.red-link {
+    color: var(--primary-main);
+}
+
+.answer-cell {
     width: 100%;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .clues-container {
