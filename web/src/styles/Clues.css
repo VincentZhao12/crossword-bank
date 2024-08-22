@@ -4,7 +4,6 @@
     width: 60%;
 }
 
-/* Style the table */
 .clue-list {
     width: 80%;
     border-collapse: collapse;
@@ -13,14 +12,11 @@
     text-align: left;
 }
 
-/* Style the table rows */
 .clue-list tr {
     border-bottom: 1px solid #ddd;
 }
 
-/* Style the table cells */
 .clue-list td {
-    /* padding: 12px; */
     vertical-align: middle;
     padding: 0.5em 0em;
     min-width: 7em;
