@@ -2,6 +2,7 @@ import React, { FC, FormEvent, useEffect, useState } from 'react';
 import '../styles/Signup.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Spinner from '../components/Spinner';
 
 interface SignupProps {}
 
@@ -17,6 +18,13 @@ const Signup: FC<SignupProps> = () => {
     useEffect(() => {
         if (loggedIn) navigate('/');
     }, [loggedIn, navigate]);
+
+    if (loading)
+        return (
+            <div className="signup-container">
+                <Spinner />
+            </div>
+        );
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
