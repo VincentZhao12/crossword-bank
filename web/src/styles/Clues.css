@@ -1,6 +1,7 @@
 .clue-list {
     width: 80%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 1em 0;
     margin: 20px 0;
     font-size: 18px;
     text-align: left;
@@ -13,7 +14,6 @@
 .clue-list td {
     vertical-align: middle;
     padding: 0.5em 0em;
-    /* min-width: 7em; */
     text-overflow: ellipsis;
 }
 
@@ -25,6 +25,10 @@
     overflow-x: scroll;
     display: flex;
     justify-content: flex-end;
+}
+
+.search-bar {
+    width: 60%;
 }
 
 .clues-container {
@@ -51,8 +55,7 @@
     #search {
         width: 100%;
     }
-}
-
-.normal-width {
-    width: 60%;
+    .search-bar {
+        width: 100%;
+    }
 }

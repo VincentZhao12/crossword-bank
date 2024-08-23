@@ -117,7 +117,7 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
                     <b>Error: </b> {error}
                 </span>
             )}
-            <div className="form-group normal-width">
+            <div className="form-group search-bar">
                 <label htmlFor="search">Search for a clue</label>
                 <input
                     type="text"
