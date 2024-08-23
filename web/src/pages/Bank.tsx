@@ -48,9 +48,10 @@ const Bank: FC<BankProps> = () => {
             return;
         }
 
-        if (answer.match(/[^a-zA-Z]/))
+        if (answer.match(/[^a-zA-Z]/)) {
             setError('answer must only contain letters');
-
+            return;
+        }
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
 
@@ -80,6 +81,8 @@ const Bank: FC<BankProps> = () => {
         }
 
         setError('');
+        setClue('');
+        setAnswer('');
         setDummy(-dummy);
     };
     return (
