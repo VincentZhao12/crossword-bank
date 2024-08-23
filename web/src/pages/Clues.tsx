@@ -67,6 +67,7 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
         } catch (e: any) {
             if (e.name === 'AbortError') {
                 console.log('aborted', searchTerm);
+                return;
             } else {
                 console.log(e);
             }
