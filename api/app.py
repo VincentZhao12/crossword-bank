@@ -399,3 +399,6 @@ def delete_clue():
         return jsonify({"message": "error occurred deleting clue"}), 500
     
     return jsonify({"message": "success"}), 200
+
+if __name__ == "__main__":
+    app.run()
