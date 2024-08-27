@@ -78,6 +78,7 @@ const Signup: FC<SignupProps> = () => {
                     <div className="form-group">
                         <label htmlFor="email">Email:</label>
                         <input
+                            autoComplete="off"
                             type="email"
                             id="email"
                             value={email}
@@ -88,6 +89,7 @@ const Signup: FC<SignupProps> = () => {
                     <div className="form-group">
                         <label htmlFor="password">Password:</label>
                         <input
+                            autoComplete="off"
                             type="password"
                             id="password"
                             value={password}

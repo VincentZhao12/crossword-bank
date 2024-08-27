@@ -120,6 +120,7 @@ const Clues: FC<CluesProps> = ({ filter, id, dummy, isOwner }) => {
             <div className="form-group search-bar">
                 <label htmlFor="search">Search for a clue</label>
                 <input
+                    autoComplete="off"
                     type="text"
                     id="search"
                     onChange={(e) => setSearchTerm(e.target.value)}

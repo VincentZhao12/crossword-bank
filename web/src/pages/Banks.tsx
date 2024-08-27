@@ -205,6 +205,7 @@ const Banks: FC<BanksProps> = () => {
                         Enter the name of your bank here
                     </label>
                     <input
+                        autoComplete="off"
                         type="text"
                         id="title-input"
                         value={title}

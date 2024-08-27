@@ -98,6 +98,7 @@ const Bank: FC<BankProps> = () => {
                         <div>
                             <label htmlFor="clue">Clue</label>
                             <input
+                                autoComplete="off"
                                 type="text"
                                 id="clue"
                                 value={clue}
@@ -107,6 +108,7 @@ const Bank: FC<BankProps> = () => {
                         <div>
                             <label htmlFor="answer">Answer</label>
                             <input
+                                autoComplete="off"
                                 type="text"
                                 id="answer"
                                 value={answer}
