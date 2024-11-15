@@ -8,11 +8,14 @@ import datetime
 import numpy as np
 import difflib
 from flask_cors import CORS
+from sklearn.metrics.pairwise import cosine_similarity
 import signal
+import time
 
 from sentence_transformers import SentenceTransformer
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
+print("model loaded")
 
 SIGNUP_USER = "INSERT INTO users (id, email, username, password, salt) VALUES (DEFAULT, %s, %s, %s, %s) RETURNING id"
 SELECT_LOGIN = "SELECT id, password, salt FROM users WHERE email = %s"
@@ -96,15 +99,15 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["AUTH_SECRET_KEY"] = os.getenv("JWT_SECRET")
 
-def cosine_similarity(vec1, vec2):
-    dot_product = np.dot(vec1, vec2)
+# def cosine_similarity(vec1, vec2):
+#     dot_product = np.dot(vec1, vec2)
 
-    norm_vec1 = np.linalg.norm(vec1)
-    norm_vec2 = np.linalg.norm(vec2)
+#     norm_vec1 = np.linalg.norm(vec1)
+#     norm_vec2 = np.linalg.norm(vec2)
     
-    if norm_vec1 == 0 or norm_vec2 == 0:
-        return 0.0
-    return dot_product / (norm_vec1 * norm_vec2)
+#     if norm_vec1 == 0 or norm_vec2 == 0:
+#         return 0.0
+#     return dot_product / (norm_vec1 * norm_vec2)
 
 def execute(query, params, fetch="none"):
     with psycopg2.connect(host=hostname, port=port, user=user, password=password) as connection:
@@ -293,6 +296,7 @@ def check_owner():
     
 @app.route("/get-clues", methods=["GET", "POST"])
 def get_clues():
+    print("HELLO????")
     user_id = request.json.get("user_id")
     bank_id = request.json.get("bank_id")
     length = request.json.get("length")
@@ -338,8 +342,10 @@ def get_clues():
     
     clues = [row[1] for row in res]
     
+    start = time.time()
     clue_embeddings = model.encode(clues)
     search_embedding = model.encode([search_term])
+    embedding_time = time.time() - start
     
     semantic_scores = cosine_similarity(search_embedding, clue_embeddings)[0]
     matching_scores = [difflib.SequenceMatcher(None, search_term, clue).ratio() for clue in clues]
@@ -347,7 +353,8 @@ def get_clues():
     scores = [0.8 * semantic_scores[i] + 0.2 * matching_scores[i] for i in range(len(clues))]
     
     res = sorted(zip(scores, data), key=lambda x: x[0], reverse=True)
-    return jsonify({"data": [row[1] for row in res if row[0] > 0.1]}), 200
+    print(embedding_time, search_term)
+    return jsonify({"data": [row[1] for row in res if row[0] > 0.1], "time": f"{embedding_time}"}), 200
     
 @app.route("/delete-bank", methods=["POST"])
 def delete_bank():
@@ -412,4 +419,4 @@ def delete_clue():
     return jsonify({"message": "success"}), 200
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
