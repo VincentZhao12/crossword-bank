@@ -5,9 +5,10 @@ import os
 import jwt
 import bcrypt
 import datetime
-from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 import difflib
 from flask_cors import CORS
+import signal
 
 from sentence_transformers import SentenceTransformer
 
@@ -94,6 +95,16 @@ cors = CORS(app)
 
 app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["AUTH_SECRET_KEY"] = os.getenv("JWT_SECRET")
+
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+
+    norm_vec1 = np.linalg.norm(vec1)
+    norm_vec2 = np.linalg.norm(vec2)
+    
+    if norm_vec1 == 0 or norm_vec2 == 0:
+        return 0.0
+    return dot_product / (norm_vec1 * norm_vec2)
 
 def execute(query, params, fetch="none"):
     with psycopg2.connect(host=hostname, port=port, user=user, password=password) as connection:
